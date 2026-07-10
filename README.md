@@ -15,6 +15,7 @@ Production-ready Node.js, Express, TypeScript, and Firebase Admin API for the Ma
 ### Public
 
 - `GET /health` — service health check
+- `GET /api/firebase-config` — returns the public Firebase Web SDK configuration for the frontend
 - `POST /api/contact` — contact form lead intake
 - `POST /api/consultation-request` — consultation request intake
 
@@ -50,6 +51,12 @@ cp .env.example .env
 | `FIREBASE_PROJECT_ID` | Firebase project ID |
 | `FIREBASE_CLIENT_EMAIL` | Firebase service account client email |
 | `FIREBASE_PRIVATE_KEY` | Firebase service account private key; keep quoted and preserve `\n` escapes |
+| `FIREBASE_WEB_API_KEY` | Public Firebase Web API key used by the frontend for Firebase Auth signup/sign-in |
+| `FIREBASE_WEB_AUTH_DOMAIN` | Public Firebase Auth domain; defaults to `<FIREBASE_PROJECT_ID>.firebaseapp.com` when omitted |
+| `FIREBASE_WEB_APP_ID` | Optional public Firebase Web app ID |
+| `FIREBASE_WEB_MESSAGING_SENDER_ID` | Optional public Firebase messaging sender ID |
+| `FIREBASE_WEB_STORAGE_BUCKET` | Optional public Firebase storage bucket |
+| `FIREBASE_WEB_MEASUREMENT_ID` | Optional public Firebase Analytics measurement ID |
 
 ## Local Development
 
@@ -68,6 +75,7 @@ npm start
 ## Validation and Security Notes
 
 - The backend does not create Firebase Auth users. The frontend owns signup/sign-in through Firebase Auth.
+- If signup requests go to `identitytoolkit.googleapis.com` with `key=YOUR_FIREBASE_API_KEY`, the frontend was built with a placeholder Firebase Web API key. Set `FIREBASE_WEB_API_KEY` on the backend and use `GET /api/firebase-config`, or rebuild the frontend with the real Firebase Web config from the Firebase console.
 - Protected routes only verify Firebase ID tokens and attach the decoded token to `req.user`.
 - Request bodies are parsed by Express, validated with strict Zod schemas, and unknown keys are rejected.
 - Public lead intake endpoints are rate limited to reduce spam.
@@ -87,6 +95,10 @@ npm start
 
 ```bash
 curl http://localhost:8080/health
+```
+
+```bash
+curl http://localhost:8080/api/firebase-config
 ```
 
 ```bash
