@@ -3,7 +3,7 @@ import { firestore } from '../config/firebase.js';
 import type { ConsultationRequestInput, ContactInput, ProjectDiscoveryInput } from '../schemas/leadSchemas.js';
 
 export const createContactMessage = async (input: ContactInput) => {
-  const ref = firestore.collection('contactMessages').doc();
+  const ref = firestore.collection('contactSubmissions').doc();
   await ref.set({ ...input, createdAt: FieldValue.serverTimestamp() });
   return { id: ref.id };
 };

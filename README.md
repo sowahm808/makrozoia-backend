@@ -31,7 +31,7 @@ Protected endpoints require `Authorization: Bearer <Firebase ID Token>`.
 
 - `users/{uid}` — reserved for Firebase/Auth user profile expansion
 - `companyProfiles/{uid}` — company profile data read by protected APIs
-- `contactMessages/{messageId}` — public contact submissions
+- `contactSubmissions/{submissionId}` — public contact submissions
 - `consultationRequests/{requestId}` — public consultation requests with `status: new`
 - `projectDiscovery/{submissionId}` — authenticated project discovery submissions with `status: submitted`
 
