@@ -15,6 +15,11 @@ const nonPlaceholderString = (name: string) => z.string().trim().min(1, `${name}
   `${name} must be set to a real value, not an example placeholder`,
 );
 
+const firebaseWebApiKey = nonPlaceholderString('FIREBASE_WEB_API_KEY').refine(
+  (value) => /^AIza[0-9A-Za-z_-]{35}$/.test(value),
+  'FIREBASE_WEB_API_KEY must be the Firebase Web API key from Project settings > General > Your apps > Web app',
+);
+
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(8080),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -22,7 +27,7 @@ const envSchema = z.object({
   FIREBASE_PROJECT_ID: nonPlaceholderString('FIREBASE_PROJECT_ID'),
   FIREBASE_CLIENT_EMAIL: z.string().email('FIREBASE_CLIENT_EMAIL must be valid'),
   FIREBASE_PRIVATE_KEY: nonPlaceholderString('FIREBASE_PRIVATE_KEY'),
-  FIREBASE_WEB_API_KEY: nonPlaceholderString('FIREBASE_WEB_API_KEY').optional(),
+  FIREBASE_WEB_API_KEY: firebaseWebApiKey.optional(),
   FIREBASE_WEB_AUTH_DOMAIN: nonPlaceholderString('FIREBASE_WEB_AUTH_DOMAIN').optional(),
   FIREBASE_WEB_APP_ID: nonPlaceholderString('FIREBASE_WEB_APP_ID').optional(),
   FIREBASE_WEB_MESSAGING_SENDER_ID: nonPlaceholderString('FIREBASE_WEB_MESSAGING_SENDER_ID').optional(),
