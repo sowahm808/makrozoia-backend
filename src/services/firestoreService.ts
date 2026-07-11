@@ -26,9 +26,17 @@ export const createProjectDiscovery = async (uid: string, input: ProjectDiscover
   return { id: ref.id };
 };
 
+const mapProjectDiscoveryDoc = (doc: FirebaseFirestore.QueryDocumentSnapshot) => ({ id: doc.id, ...serializeFirestoreData(doc.data()) });
+
+export const getLatestProjectDiscoveryForUser = async (uid: string) => {
+  const snapshot = await firestore.collection('projectDiscovery').where('uid', '==', uid).orderBy('createdAt', 'desc').limit(1).get();
+  const [latest] = snapshot.docs;
+  return latest ? mapProjectDiscoveryDoc(latest) : null;
+};
+
 export const listProjectDiscoveryForUser = async (uid: string) => {
   const snapshot = await firestore.collection('projectDiscovery').where('uid', '==', uid).orderBy('createdAt', 'desc').get();
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...serializeFirestoreData(doc.data()) }));
+  return snapshot.docs.map(mapProjectDiscoveryDoc);
 };
 
 const serializeFirestoreData = (data: FirebaseFirestore.DocumentData) => Object.fromEntries(
