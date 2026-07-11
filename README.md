@@ -24,6 +24,7 @@ Production-ready Node.js, Express, TypeScript, and Firebase Admin API for the Ma
 Protected endpoints require `Authorization: Bearer <Firebase ID Token>`.
 
 - `GET /api/me/company-profile` — reads `companyProfiles/{uid}`
+- `GET /api/me/session` — returns the authenticated user's onboarding state, company profile, and latest project discovery session when onboarded
 - `POST /api/project-discovery` — creates an authenticated project discovery submission
 - `GET /api/project-discovery/my-submissions` — lists the authenticated user's submissions
 
@@ -33,7 +34,7 @@ Protected endpoints require `Authorization: Bearer <Firebase ID Token>`.
 - `companyProfiles/{uid}` — company profile data read by protected APIs
 - `contactSubmissions/{submissionId}` — public contact submissions
 - `consultationRequests/{requestId}` — public consultation requests with `status: new`
-- `projectDiscovery/{submissionId}` — authenticated project discovery submissions with `status: submitted`
+- `projectDiscovery/{submissionId}` — authenticated project discovery submissions with `status: submitted`; the newest submission is exposed as an onboarded user's previous session
 
 ## Environment Variables
 

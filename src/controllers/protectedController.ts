@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { createProjectDiscovery, getCompanyProfile, listProjectDiscoveryForUser } from '../services/firestoreService.js';
+import { createProjectDiscovery, getCompanyProfile, getLatestProjectDiscoveryForUser, listProjectDiscoveryForUser } from '../services/firestoreService.js';
 import { HttpError } from '../utils/httpError.js';
 
 const getUid = (req: Request) => {
@@ -10,6 +10,20 @@ const getUid = (req: Request) => {
 export const getMeCompanyProfile = async (req: Request, res: Response) => {
   const profile = await getCompanyProfile(getUid(req));
   res.status(200).json({ profile });
+};
+
+export const getMeSession = async (req: Request, res: Response) => {
+  const uid = getUid(req);
+  const [profile, latestProjectDiscovery] = await Promise.all([
+    getCompanyProfile(uid),
+    getLatestProjectDiscoveryForUser(uid),
+  ]);
+
+  res.status(200).json({
+    onboarded: profile !== null,
+    profile,
+    previousSession: profile ? latestProjectDiscovery : null,
+  });
 };
 
 export const submitProjectDiscovery = async (req: Request, res: Response) => {
