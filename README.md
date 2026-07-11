@@ -76,7 +76,7 @@ npm start
 ## Validation and Security Notes
 
 - The backend does not create Firebase Auth users. The frontend owns signup/sign-in through Firebase Auth.
-- If signup requests go to `identitytoolkit.googleapis.com` with `key=YOUR_FIREBASE_API_KEY`, the frontend was built with a placeholder Firebase Web API key. Set `FIREBASE_WEB_API_KEY` on the backend and use `GET /api/firebase-config`, or rebuild the frontend with the real Firebase Web config from the Firebase console.
+- If signup or login fails with a generic message such as `Unable to create account. Please try again.`, first inspect the browser network request to `identitytoolkit.googleapis.com`. A request with `key=YOUR_FIREBASE_API_KEY`, `key=replace-with-firebase-web-api-key`, or any other example value means the frontend is using placeholder Firebase Web configuration. Set `FIREBASE_WEB_API_KEY` on the backend and use `GET /api/firebase-config`, or rebuild the frontend with the real Firebase Web config from the Firebase console. The backend rejects common placeholder values at startup so this issue is visible during deployment instead of surfacing as a broken signup form.
 - Protected routes only verify Firebase ID tokens and attach the decoded token to `req.user`.
 - Request bodies are parsed by Express, validated with strict Zod schemas, and unknown keys are rejected.
 - Public lead intake endpoints are rate limited to reduce spam.
