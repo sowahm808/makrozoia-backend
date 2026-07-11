@@ -3,9 +3,16 @@ import { z } from 'zod';
 
 dotenv.config();
 
+const placeholderPatterns = [
+  /^YOUR_[A-Z0-9_]+$/i,
+  /^replace-with-/i,
+  /^your-/i,
+  /^example-/i,
+];
+
 const nonPlaceholderString = (name: string) => z.string().trim().min(1, `${name} is required`).refine(
-  (value) => !/^YOUR_[A-Z0-9_]+$/.test(value),
-  `${name} must not be a placeholder value`,
+  (value) => !placeholderPatterns.some((pattern) => pattern.test(value)),
+  `${name} must be set to a real value, not an example placeholder`,
 );
 
 const envSchema = z.object({
@@ -14,7 +21,7 @@ const envSchema = z.object({
   CORS_ORIGINS: z.string().default(''),
   FIREBASE_PROJECT_ID: nonPlaceholderString('FIREBASE_PROJECT_ID'),
   FIREBASE_CLIENT_EMAIL: z.string().email('FIREBASE_CLIENT_EMAIL must be valid'),
-  FIREBASE_PRIVATE_KEY: z.string().min(1, 'FIREBASE_PRIVATE_KEY is required'),
+  FIREBASE_PRIVATE_KEY: nonPlaceholderString('FIREBASE_PRIVATE_KEY'),
   FIREBASE_WEB_API_KEY: nonPlaceholderString('FIREBASE_WEB_API_KEY').optional(),
   FIREBASE_WEB_AUTH_DOMAIN: nonPlaceholderString('FIREBASE_WEB_AUTH_DOMAIN').optional(),
   FIREBASE_WEB_APP_ID: nonPlaceholderString('FIREBASE_WEB_APP_ID').optional(),
