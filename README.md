@@ -52,7 +52,7 @@ cp .env.example .env
 | `FIREBASE_PROJECT_ID` | Firebase project ID |
 | `FIREBASE_CLIENT_EMAIL` | Firebase service account client email |
 | `FIREBASE_PRIVATE_KEY` | Firebase service account private key; keep quoted and preserve `\n` escapes |
-| `FIREBASE_WEB_API_KEY` | Public Firebase Web API key used by the frontend for Firebase Auth signup/sign-in |
+| `FIREBASE_WEB_API_KEY` | Public Firebase Web API key used by the frontend for Firebase Auth signup/sign-in; must be the Web app key that starts with `AIza` |
 | `FIREBASE_WEB_AUTH_DOMAIN` | Public Firebase Auth domain; defaults to `<FIREBASE_PROJECT_ID>.firebaseapp.com` when omitted |
 | `FIREBASE_WEB_APP_ID` | Optional public Firebase Web app ID |
 | `FIREBASE_WEB_MESSAGING_SENDER_ID` | Optional public Firebase messaging sender ID |
@@ -76,7 +76,7 @@ npm start
 ## Validation and Security Notes
 
 - The backend does not create Firebase Auth users. The frontend owns signup/sign-in through Firebase Auth.
-- If signup or login fails with a generic message such as `Unable to create account. Please try again.`, first inspect the browser network request to `identitytoolkit.googleapis.com`. A request with `key=YOUR_FIREBASE_API_KEY`, `key=replace-with-firebase-web-api-key`, or any other example value means the frontend is using placeholder Firebase Web configuration. Set `FIREBASE_WEB_API_KEY` on the backend and use `GET /api/firebase-config`, or rebuild the frontend with the real Firebase Web config from the Firebase console. The backend rejects common placeholder values at startup so this issue is visible during deployment instead of surfacing as a broken signup form.
+- If signup or login fails with a generic message such as `Unable to create account. Please try again.` or `Unable to sign in. Check your credentials.`, first inspect the browser network request to `identitytoolkit.googleapis.com`. A request with `key=YOUR_FIREBASE_API_KEY`, `key=replace-with-firebase-web-api-key`, or any other example value means the frontend is using placeholder Firebase Web configuration. Set `FIREBASE_WEB_API_KEY` on the backend and use `GET /api/firebase-config`, or rebuild the frontend with the real Firebase Web config from the Firebase console. The value must be the Firebase Web app API key from Project settings > General > Your apps > Web app, and it normally starts with `AIza`. The backend rejects common placeholder values and malformed Firebase Web API keys at startup so this issue is visible during deployment instead of surfacing as a broken signup/sign-in form.
 - Protected routes only verify Firebase ID tokens and attach the decoded token to `req.user`.
 - Request bodies are parsed by Express, validated with strict Zod schemas, and unknown keys are rejected.
 - Public lead intake endpoints are rate limited to reduce spam.
