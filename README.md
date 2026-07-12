@@ -6,6 +6,7 @@ Production-ready Node.js, Express, TypeScript, and Firebase Admin API for the Ma
 
 - Firebase ID token verification for protected routes
 - Firestore-backed lead, consultation, and project discovery storage
+- Admin client dashboard APIs for reviewing intake details and tracking POC status
 - Zod validation for all POST payloads
 - Helmet security headers, CORS allow-listing, Morgan logging, and public endpoint rate limiting
 - Central async error handling and clean service/controller/route layering
@@ -27,6 +28,14 @@ Protected endpoints require `Authorization: Bearer <Firebase ID Token>`.
 - `GET /api/me/session` — returns the authenticated user's onboarding state, company profile, and latest project discovery session when onboarded
 - `POST /api/project-discovery` — creates an authenticated project discovery submission
 - `GET /api/project-discovery/my-submissions` — lists the authenticated user's submissions
+- `GET /api/me/poc-status` — returns the authenticated user's latest POC status and related project discovery submission
+
+### Admin
+
+Admin endpoints require `Authorization: Bearer <Firebase ID Token>` plus a Firebase custom claim of `admin: true` or `role: admin`.
+
+- `GET /api/admin/clients` — lists all project discovery clients with key intake details for an admin dashboard
+- `PATCH /api/admin/clients/:submissionId/poc-status` — updates a project discovery submission's POC status. Accepted `pocStatus` values are `submitted`, `accepted`, `in_progress`, `deployed`, and `delivered`; optional `note` captures internal status context
 
 ## Firestore Collections
 
@@ -34,7 +43,7 @@ Protected endpoints require `Authorization: Bearer <Firebase ID Token>`.
 - `companyProfiles/{uid}` — company profile data read by protected APIs
 - `contactSubmissions/{submissionId}` — public contact submissions
 - `consultationRequests/{requestId}` — public consultation requests with `status: new`
-- `projectDiscovery/{submissionId}` — authenticated project discovery submissions with `status: submitted`; the newest submission is exposed as an onboarded user's previous session
+- `projectDiscovery/{submissionId}` — authenticated project discovery submissions with `status`/`pocStatus` values of `submitted`, `accepted`, `in_progress`, `deployed`, or `delivered`; the newest submission is exposed as an onboarded user's previous session and client-facing POC status
 
 ## Environment Variables
 
@@ -78,6 +87,7 @@ npm start
 - The backend does not create Firebase Auth users. The frontend owns signup/sign-in through Firebase Auth.
 - If signup or login fails with a generic message such as `Unable to create account. Please try again.` or `Unable to sign in. Check your credentials.`, first inspect the browser network request to `identitytoolkit.googleapis.com`. A request with `key=YOUR_FIREBASE_API_KEY`, `key=replace-with-firebase-web-api-key`, or any other example value means the frontend is using placeholder Firebase Web configuration. Set `FIREBASE_WEB_API_KEY` on the backend and use `GET /api/firebase-config`, or rebuild the frontend with the real Firebase Web config from the Firebase console. The value must be the Firebase Web app API key from Project settings > General > Your apps > Web app, and it normally starts with `AIza`. The backend rejects common placeholder values and malformed Firebase Web API keys at startup so this issue is visible during deployment instead of surfacing as a broken signup/sign-in form.
 - Protected routes only verify Firebase ID tokens and attach the decoded token to `req.user`.
+- Admin routes additionally require a Firebase custom claim of `admin: true` or `role: admin`.
 - Request bodies are parsed by Express, validated with strict Zod schemas, and unknown keys are rejected.
 - Public lead intake endpoints are rate limited to reduce spam.
 - Secrets are loaded from environment variables and are never returned in API responses.

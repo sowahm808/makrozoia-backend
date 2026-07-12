@@ -1,6 +1,9 @@
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { firestore } from '../config/firebase.js';
-import type { ConsultationRequestInput, ContactInput, ProjectDiscoveryInput } from '../schemas/leadSchemas.js';
+import type { ConsultationRequestInput, ContactInput, PocStatusUpdateInput, ProjectDiscoveryInput } from '../schemas/leadSchemas.js';
+
+export const pocStatuses = ['submitted', 'accepted', 'in_progress', 'deployed', 'delivered'] as const;
+export type PocStatus = typeof pocStatuses[number];
 
 export const createContactMessage = async (input: ContactInput) => {
   const ref = firestore.collection('contactSubmissions').doc();
@@ -17,16 +20,27 @@ export const createConsultationRequest = async (input: ConsultationRequestInput)
 export const getCompanyProfile = async (uid: string) => {
   const snapshot = await firestore.collection('companyProfiles').doc(uid).get();
   if (!snapshot.exists) return null;
-  return { id: snapshot.id, ...snapshot.data() };
+  return { id: snapshot.id, ...serializeFirestoreData(snapshot.data() ?? {}) };
 };
 
 export const createProjectDiscovery = async (uid: string, input: ProjectDiscoveryInput) => {
   const ref = firestore.collection('projectDiscovery').doc();
-  await ref.set({ ...input, uid, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(), status: 'submitted' });
+  await ref.set({
+    ...input,
+    uid,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    pocStatus: 'submitted',
+    status: 'submitted',
+  });
   return { id: ref.id };
 };
 
-const mapProjectDiscoveryDoc = (doc: FirebaseFirestore.QueryDocumentSnapshot) => ({ id: doc.id, ...serializeFirestoreData(doc.data()) });
+const serializeFirestoreData = (data: FirebaseFirestore.DocumentData) => Object.fromEntries(
+  Object.entries(data).map(([key, value]) => [key, value instanceof Timestamp ? value.toDate().toISOString() : value]),
+);
+
+const mapProjectDiscoveryDoc = (doc: FirebaseFirestore.QueryDocumentSnapshot): FirebaseFirestore.DocumentData & { id: string } => ({ id: doc.id, ...serializeFirestoreData(doc.data()) });
 
 export const getLatestProjectDiscoveryForUser = async (uid: string) => {
   const snapshot = await firestore.collection('projectDiscovery').where('uid', '==', uid).orderBy('createdAt', 'desc').limit(1).get();
@@ -39,6 +53,46 @@ export const listProjectDiscoveryForUser = async (uid: string) => {
   return snapshot.docs.map(mapProjectDiscoveryDoc);
 };
 
-const serializeFirestoreData = (data: FirebaseFirestore.DocumentData) => Object.fromEntries(
-  Object.entries(data).map(([key, value]) => [key, value instanceof Timestamp ? value.toDate().toISOString() : value]),
-);
+export const listAdminClients = async () => {
+  const snapshot = await firestore.collection('projectDiscovery').orderBy('createdAt', 'desc').get();
+  return snapshot.docs.map((doc) => {
+    const data = serializeFirestoreData(doc.data());
+    return {
+      id: doc.id,
+      uid: data.uid,
+      companyName: data.companyName,
+      businessProblem: data.businessProblem,
+      desiredOutcome: data.desiredOutcome,
+      servicesNeeded: data.servicesNeeded ?? [],
+      budgetRange: data.budgetRange,
+      timeline: data.timeline,
+      currentTechStack: data.currentTechStack ?? [],
+      cloudProvider: data.cloudProvider,
+      complianceRequirements: data.complianceRequirements,
+      pocStatus: data.pocStatus ?? data.status ?? 'submitted',
+      status: data.status ?? data.pocStatus ?? 'submitted',
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      pocStatusUpdatedAt: data.pocStatusUpdatedAt,
+      pocStatusNote: data.pocStatusNote,
+    };
+  });
+};
+
+export const updateProjectDiscoveryPocStatus = async (submissionId: string, input: PocStatusUpdateInput, updatedByUid: string) => {
+  const ref = firestore.collection('projectDiscovery').doc(submissionId);
+  const snapshot = await ref.get();
+  if (!snapshot.exists) return null;
+
+  await ref.update({
+    pocStatus: input.pocStatus,
+    status: input.pocStatus,
+    pocStatusNote: input.note ?? FieldValue.delete(),
+    pocStatusUpdatedAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+    updatedByUid,
+  });
+
+  const updated = await ref.get();
+  return { id: updated.id, ...serializeFirestoreData(updated.data() ?? {}) };
+};

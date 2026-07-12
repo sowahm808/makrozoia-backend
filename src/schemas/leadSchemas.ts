@@ -27,6 +27,8 @@ export const consultationRequestSchema = z.object({
   message: optionalText(3000),
 }).strict();
 
+export const pocStatusSchema = z.enum(['submitted', 'accepted', 'in_progress', 'deployed', 'delivered']);
+
 export const projectDiscoverySchema = z.object({
   companyName: requiredText('companyName', 160),
   businessProblem: requiredText('businessProblem', 3000),
@@ -46,4 +48,10 @@ export const projectDiscoverySchema = z.object({
 
 export type ContactInput = z.infer<typeof contactSchema>;
 export type ConsultationRequestInput = z.infer<typeof consultationRequestSchema>;
+export const pocStatusUpdateSchema = z.object({
+  pocStatus: pocStatusSchema,
+  note: optionalText(1000),
+}).strict();
+
 export type ProjectDiscoveryInput = z.infer<typeof projectDiscoverySchema>;
+export type PocStatusUpdateInput = z.infer<typeof pocStatusUpdateSchema>;
