@@ -92,6 +92,10 @@ npm start
 6. Add all required environment variables in Render's dashboard.
 7. Add your production frontend URL to `CORS_ORIGINS`.
 
+## Frontend Contact Form Integration
+
+Frontend contact forms should call `POST /api/contact` instead of writing directly to `contactSubmissions` with the Firebase Web SDK. Browser Firestore writes require public security rules, while this backend uses the Firebase Admin SDK behind a rate-limited and validated public endpoint. See `docs/frontend-contact-form.md` for an Angular `HttpClient` service example and CORS configuration notes.
+
 ## Example Requests
 
 ```bash
