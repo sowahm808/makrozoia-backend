@@ -53,29 +53,61 @@ export const listProjectDiscoveryForUser = async (uid: string) => {
   return snapshot.docs.map(mapProjectDiscoveryDoc);
 };
 
+const mapAdminProjectDiscoveryDoc = (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+  const data = serializeFirestoreData(doc.data());
+  return {
+    id: doc.id,
+    type: 'projectDiscovery' as const,
+    uid: data.uid,
+    companyName: data.companyName,
+    businessProblem: data.businessProblem,
+    currentSystem: data.currentSystem,
+    desiredOutcome: data.desiredOutcome,
+    servicesNeeded: data.servicesNeeded ?? [],
+    budgetRange: data.budgetRange,
+    timeline: data.timeline,
+    currentTechStack: data.currentTechStack ?? [],
+    cloudProvider: data.cloudProvider,
+    integrationNeeds: data.integrationNeeds,
+    securityRequirements: data.securityRequirements,
+    complianceRequirements: data.complianceRequirements,
+    aiUseCases: data.aiUseCases,
+    additionalNotes: data.additionalNotes,
+    pocStatus: data.pocStatus ?? data.status ?? 'submitted',
+    status: data.status ?? data.pocStatus ?? 'submitted',
+    createdAt: data.createdAt,
+    updatedAt: data.updatedAt,
+    pocStatusUpdatedAt: data.pocStatusUpdatedAt,
+    pocStatusNote: data.pocStatusNote,
+  };
+};
+
+const mapAdminLeadDoc = (doc: FirebaseFirestore.QueryDocumentSnapshot, type: 'contactSubmission' | 'consultationRequest'): FirebaseFirestore.DocumentData & { id: string; type: 'contactSubmission' | 'consultationRequest' } => ({
+  id: doc.id,
+  type,
+  ...serializeFirestoreData(doc.data()),
+});
+
 export const listAdminClients = async () => {
   const snapshot = await firestore.collection('projectDiscovery').orderBy('createdAt', 'desc').get();
-  return snapshot.docs.map((doc) => {
-    const data = serializeFirestoreData(doc.data());
-    return {
-      id: doc.id,
-      uid: data.uid,
-      companyName: data.companyName,
-      businessProblem: data.businessProblem,
-      desiredOutcome: data.desiredOutcome,
-      servicesNeeded: data.servicesNeeded ?? [],
-      budgetRange: data.budgetRange,
-      timeline: data.timeline,
-      currentTechStack: data.currentTechStack ?? [],
-      cloudProvider: data.cloudProvider,
-      complianceRequirements: data.complianceRequirements,
-      pocStatus: data.pocStatus ?? data.status ?? 'submitted',
-      status: data.status ?? data.pocStatus ?? 'submitted',
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-      pocStatusUpdatedAt: data.pocStatusUpdatedAt,
-      pocStatusNote: data.pocStatusNote,
-    };
+  return snapshot.docs.map(mapAdminProjectDiscoveryDoc);
+};
+
+export const listAdminIntake = async () => {
+  const [projectDiscoverySnapshot, contactSubmissionsSnapshot, consultationRequestsSnapshot] = await Promise.all([
+    firestore.collection('projectDiscovery').orderBy('createdAt', 'desc').get(),
+    firestore.collection('contactSubmissions').orderBy('createdAt', 'desc').get(),
+    firestore.collection('consultationRequests').orderBy('createdAt', 'desc').get(),
+  ]);
+
+  return [
+    ...projectDiscoverySnapshot.docs.map(mapAdminProjectDiscoveryDoc),
+    ...contactSubmissionsSnapshot.docs.map((doc) => mapAdminLeadDoc(doc, 'contactSubmission')),
+    ...consultationRequestsSnapshot.docs.map((doc) => mapAdminLeadDoc(doc, 'consultationRequest')),
+  ].sort((a, b) => {
+    const aCreatedAt = typeof a.createdAt === 'string' ? Date.parse(a.createdAt) : 0;
+    const bCreatedAt = typeof b.createdAt === 'string' ? Date.parse(b.createdAt) : 0;
+    return bCreatedAt - aCreatedAt;
   });
 };
 

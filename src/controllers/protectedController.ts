@@ -4,6 +4,7 @@ import {
   getCompanyProfile,
   getLatestProjectDiscoveryForUser,
   listAdminClients,
+  listAdminIntake,
   listProjectDiscoveryForUser,
   updateProjectDiscoveryPocStatus,
 } from '../services/firestoreService.js';
@@ -54,6 +55,11 @@ export const getMyPocStatus = async (req: Request, res: Response) => {
 export const getAdminClients = async (_req: Request, res: Response) => {
   const clients = await listAdminClients();
   res.status(200).json({ clients });
+};
+
+export const getAdminIntake = async (_req: Request, res: Response) => {
+  const intake = await listAdminIntake();
+  res.status(200).json({ intake });
 };
 
 export const patchAdminClientPocStatus = async (req: Request, res: Response) => {

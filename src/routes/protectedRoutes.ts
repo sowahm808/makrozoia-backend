@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getAdminClients,
+  getAdminIntake,
   getMeCompanyProfile,
   getMeSession,
   getMyPocStatus,
@@ -23,4 +24,5 @@ protectedRoutes.get('/api/me/poc-status', asyncHandler(getMyPocStatus));
 protectedRoutes.post('/api/project-discovery', validateBody(projectDiscoverySchema), asyncHandler(submitProjectDiscovery));
 protectedRoutes.get('/api/project-discovery/my-submissions', asyncHandler(getMyProjectDiscoverySubmissions));
 protectedRoutes.get('/api/admin/clients', requireAdmin, asyncHandler(getAdminClients));
+protectedRoutes.get('/api/admin/intake', requireAdmin, asyncHandler(getAdminIntake));
 protectedRoutes.patch('/api/admin/clients/:submissionId/poc-status', requireAdmin, validateBody(pocStatusUpdateSchema), asyncHandler(patchAdminClientPocStatus));
