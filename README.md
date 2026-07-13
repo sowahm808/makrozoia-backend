@@ -34,7 +34,8 @@ Protected endpoints require `Authorization: Bearer <Firebase ID Token>`.
 
 Admin endpoints require `Authorization: Bearer <Firebase ID Token>` plus a Firebase custom claim of `admin: true` or `role: admin`.
 
-- `GET /api/admin/clients` — lists all project discovery clients with key intake details for an admin dashboard
+- `GET /api/admin/clients` — lists all project discovery clients with complete project intake details for an admin dashboard
+- `GET /api/admin/intake` — lists all intake submissions across project discovery, contact submissions, and consultation requests for the admin dashboard
 - `PATCH /api/admin/clients/:submissionId/poc-status` — updates a project discovery submission's POC status. Accepted `pocStatus` values are `submitted`, `accepted`, `in_progress`, `deployed`, and `delivered`; optional `note` captures internal status context
 
 ## Firestore Collections
